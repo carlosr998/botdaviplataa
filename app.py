@@ -6,6 +6,10 @@ import random
 from datetime import datetime
 import asyncio
 from threading import Thread
+import os
+
+# Evitar problemas con Werkzeug en Vercel
+os.environ["WERKZEUG_RUN_MAIN"] = "true"
 
 app = Flask(__name__)
 
@@ -55,8 +59,8 @@ def run():
     app.run(host="0.0.0.0", port=8080)
 
 async def main():
-    # Configurar Webhook en Vercel
-    webhook_url = "https://TUDOMINIO.vercel.app/webhook"
+    # Configurar Webhook en Vercel con tu dominio
+    webhook_url = "https://botdaviplataa.vercel.app/webhook"
     await application.bot.set_webhook(webhook_url)
 
     # Definir handlers del bot
