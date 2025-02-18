@@ -5,6 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 import random
 from datetime import datetime
 import asyncio
+from threading import Thread
 
 app = Flask(__name__)
 
@@ -19,6 +20,9 @@ TIPO_TRANSFERENCIA, NOMBRE_DESTINATARIO, NUMERO_DESTINATARIO, NUMERO_REMITENTE, 
 
 # Diccionario para almacenar datos temporales
 user_data = {}
+
+# Inicializamos el bot de Telegram
+application = Application.builder().token(TOKEN).build()
 
 async def start(update: Update, context: CallbackContext):
     await update.message.reply_text(
@@ -44,12 +48,18 @@ async def cancelar(update: Update, context: CallbackContext):
 def webhook():
     json_str = request.get_data(as_text=True)
     update = Update.de_json(json_str, application.bot)
-    application.process_update(update)
+    asyncio.run(application.process_update(update))
     return "OK", 200
 
-async def main():
-    application = Application.builder().token(TOKEN).build()
+def run():
+    app.run(host="0.0.0.0", port=8080)
 
+async def main():
+    # Configurar Webhook en Vercel
+    webhook_url = "https://TUDOMINIO.vercel.app/webhook"
+    await application.bot.set_webhook(webhook_url)
+
+    # Definir handlers del bot
     conversation_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
@@ -60,8 +70,9 @@ async def main():
 
     application.add_handler(conversation_handler)
 
-    # Webhook en lugar de polling para Vercel
-    await application.bot.set_webhook("https://TUDOMINIO.vercel.app/webhook")
-
 if __name__ == "__main__":
+    # Iniciar Flask en un hilo aparte para mantener el servidor activo
+    Thread(target=run).start()
+    
+    # Ejecutar la lógica del bot
     asyncio.run(main())
