@@ -48,6 +48,10 @@ async def cancelar(update: Update, context: CallbackContext):
     )
     return ConversationHandler.END
 
+@app.route('/')
+def home():
+    return "Bot Daviplata en Vercel funcionando."
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     json_str = request.get_data(as_text=True)
